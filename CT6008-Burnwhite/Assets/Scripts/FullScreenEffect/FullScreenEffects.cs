@@ -20,14 +20,21 @@ public class FullScreenEffects : MonoBehaviour
     [HideInInspector]
     public List<Shader> m_imageEffectsList = null;
 
-    private List<Material> m_materials = null;
+    public List<Material> m_materials = null;
+    public List<Material> Materials
+    {
+        get { return m_materials; }
+    }
 
     public bool DisableEffects = false;
+
+    public delegate void OnConstructMaterialsCallbackDelegate(FullScreenEffects a_sender);
+    public static OnConstructMaterialsCallbackDelegate OnConstructMaterials = null;
 
     //////////////////////////////////////////////////
     //// Functions
 
-    private void Awake()
+    private void Start()
     {
         ConstructMaterials();
     }
@@ -48,6 +55,9 @@ public class FullScreenEffects : MonoBehaviour
 
             m_materials.Add(new Material(m_imageEffectsList[i]));
         }
+
+        if (OnConstructMaterials != null)
+            OnConstructMaterials.Invoke(this);
     }
 
     private void OnRenderImage(RenderTexture a_source, RenderTexture a_destination)

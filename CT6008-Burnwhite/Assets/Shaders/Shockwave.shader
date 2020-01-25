@@ -11,9 +11,9 @@ Shader "Hidden/Shockwave"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-		_ShockSize("Shockwave Size", Range(0,1000)) = 0
-		_ShockThickness("Shockwave Thickness", Range(0,250)) = 0
-		_ShockStrength("Shockwave strength", Range(0, 1)) = 0
+		_ShockSize("Shockwave Size", float) = 0
+		_ShockThickness("Shockwave Thickness", float) = 50
+		_ShockStrength("Shockwave strength", Range(0, 1)) = 1
     }
     SubShader
     {
@@ -62,13 +62,14 @@ Shader "Hidden/Shockwave"
 				float2 screenPixelCoords = i.uv * _ScreenParams.xy;
 
 				float2 targetDir = normalize(screenPixelCoords - targetPixelPos);
+				float targetDirSign = sign(length(screenPixelCoords - targetPixelPos) - _ShockSize);
 				float2 targetAdjustedPixelPos = targetPixelPos + (targetDir * (_ShockSize - _ShockThickness));
 
 				float pixelDist = distance(screenPixelCoords, targetAdjustedPixelPos);
 				
 				float shockAmount = min(pixelDist - _ShockThickness, 0);
 				// I dont know how this works but it does
-				fixed4 col = tex2D(_MainTex, i.uv + (targetDir / _ScreenParams.xy * min(shockAmount * _ShockStrength, 0)));
+				fixed4 col = tex2D(_MainTex, i.uv + ((targetDir * targetDirSign) / _ScreenParams.xy * shockAmount * _ShockStrength));
 
                 return col;
             }

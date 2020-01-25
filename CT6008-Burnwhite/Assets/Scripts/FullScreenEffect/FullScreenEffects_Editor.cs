@@ -76,7 +76,6 @@ public class FullScreenEffects_Editor : Editor
 
         EditorGUI.PrefixLabel(new Rect(a_rect.x, a_rect.y, totalWidth, a_rect.height), new GUIContent(indexString));
         m_fullScreenEffects.m_imageEffectsList[a_index] = EditorGUI.ObjectField(new Rect(a_rect.x + totalWidth, a_rect.y, a_rect.width - totalWidth, a_rect.height), m_fullScreenEffects.m_imageEffectsList[a_index], typeof(Shader), false) as Shader;
-
         if (EditorGUI.EndChangeCheck())
         {
             EditorUtility.SetDirty(target);
