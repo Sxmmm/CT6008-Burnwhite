@@ -494,7 +494,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_imageEffectsList: []
   m_materials: []
-  DisableEffects: 0
+  DisableEffects: 1
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0
