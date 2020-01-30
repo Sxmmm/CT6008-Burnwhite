@@ -10,6 +10,17 @@ public class Outline : MonoBehaviour
         get { return m_outlines; }
     }
 
+    [SerializeField] private Color m_outlineColor = Color.black;
+    public Color OutlineColor
+    {
+        get { return m_outlineColor; }
+    }
+    [SerializeField] private uint m_outlineRadius = 2;
+    public uint OutlineWidth
+    {
+        get { return m_outlineRadius; }
+    }
+
     private void Awake()
     {
         if (m_outlines == null)

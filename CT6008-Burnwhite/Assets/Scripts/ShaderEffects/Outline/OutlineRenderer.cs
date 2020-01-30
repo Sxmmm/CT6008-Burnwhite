@@ -41,6 +41,9 @@ public class OutlineRenderer : MonoBehaviour
             int layer = outline.gameObject.layer;
             outline.gameObject.layer = LayerMask.NameToLayer("OutlineObject");
 
+            m_mat.SetColor("_OutlineColour", outline.OutlineColor);
+            m_mat.SetFloat("_Depth", outline.OutlineWidth);
+
             m_auxCam.Render();
             Graphics.Blit(renderTextureAux, renderTextureMain, m_mat);            
 

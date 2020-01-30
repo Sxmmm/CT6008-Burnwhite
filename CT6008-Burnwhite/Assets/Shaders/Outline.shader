@@ -35,8 +35,6 @@
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
-				float4 projPos : TEXCOORD1;
-				float depth : TEXCOORD2;
             };
 
             sampler2D _MainTex;
@@ -44,20 +42,16 @@
 			sampler2D _CameraDepthTexture;
 			sampler2D _LastCameraDepthTexture;
 
-			uniform sampler2D _ScreenRender;
-			uniform float4 _ScreenRender_ST;
-			uniform sampler2D _ScreenDepthTexture;
-
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-
-				o.projPos = ComputeScreenPos(o.vertex);
-				o.depth = -UnityObjectToViewPos(o.vertex.xyz).z *_ProjectionParams.w;
                 return o;
             }
+
+			float4 _OutlineColour;
+			uint _OutlineRadius;
 
 			float GetAlpha(v2f a_i, float2 a_offset)
 			{
@@ -68,46 +62,28 @@
 				float depth = SAMPLE_DEPTH_TEXTURE(_LastCameraDepthTexture, samplePoint);
 				float pixelDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, a_i.uv);
 
-				if (depth < pixelDepth)
-					return 0;
-
-				return mainCol.a;
+				return step(pixelDepth, depth) * mainCol.a;
 			}
-
-			int _OutlineRadius;
-			float4 _OutlineColour;
-			float _Depth;
 
             fixed4 frag (v2f i) : SV_Target
             {
-				//_ProjectionParams
-				//float screenDepth = DecodeFloatRG(tex2D(_CameraDepthTexture, i.projPos.xy / i.projPos.w).zw);
-				//float diff = (screenDepth - i.depth);
-				//float depth = 1 - smoothstep(0, _ProjectionParams.w, diff);
-				//return fixed4(depth, depth, depth, 1);
-
-				fixed4 mainCol = tex2D(_MainTex, i.uv);
-				fixed4 screenCol = tex2D(_ScreenRender, i.uv);
-				fixed4 col = mainCol;
-
-				//if (mainCol.r == screenCol.r && mainCol.g == screenCol.g && mainCol.b == screenCol.b)
-				//	return fixed4(0, 0, 0, 1);
-
-				int radius = 2;
+				fixed4 col = tex2D(_MainTex, i.uv);
 				
-				//if (SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv) > depth)
-				//	return fixed4(1, 0, 0, 1);
+				int radius = 5;
+
+				uint buffer = 5;
 
 				if (col.a == 1)
 					return fixed4(0, 0, 0, 0);
 
 				col = fixed4(_OutlineColour.xyz, 0);
 
+				int diameter = radius * radius;
 				for (int y = -radius; y <= radius; ++y)
 				{
 					for (int x = -radius; x <= radius; ++x)
 					{
-						if (x*x + y*y <= radius*radius)
+						if (x*x + y*y <= diameter)
 						{
 							if( GetAlpha(i, float2(x, y)))
 							{
