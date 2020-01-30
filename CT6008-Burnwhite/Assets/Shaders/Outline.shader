@@ -42,9 +42,11 @@
             sampler2D _MainTex;
             float4 _MainTex_ST;
 			sampler2D _CameraDepthTexture;
+			sampler2D _LastCameraDepthTexture;
 
 			uniform sampler2D _ScreenRender;
 			uniform float4 _ScreenRender_ST;
+			uniform sampler2D _ScreenDepthTexture;
 
             v2f vert (appdata v)
             {
@@ -53,20 +55,23 @@
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
 				o.projPos = ComputeScreenPos(o.vertex);
-				o.depth = -mul(UNITY_MATRIX_MV, o.vertex).z *_ProjectionParams.w;
+				o.depth = -UnityObjectToViewPos(o.vertex.xyz).z *_ProjectionParams.w;
                 return o;
             }
 
 			float GetAlpha(v2f a_i, float2 a_offset)
 			{
-				fixed4 mainCol = tex2D(_MainTex, a_i.uv + (a_offset / _ScreenParams.xy)).a;
-				fixed4 screenCol = tex2D(_ScreenRender, a_i.uv + (a_offset / _ScreenParams.xy)).a;
-				return mainCol.a;
-			}
+				float2 samplePoint = a_i.uv + (a_offset / _ScreenParams.xy);
+				
+				fixed4 mainCol = tex2D(_MainTex, samplePoint).a;
 
-			float LinearToDepth(float linearDepth)
-			{
-				return (1.0 - _ZBufferParams.w * linearDepth) / (linearDepth * _ZBufferParams.z);
+				float depth = SAMPLE_DEPTH_TEXTURE(_LastCameraDepthTexture, samplePoint);
+				float pixelDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, a_i.uv);
+
+				if (depth < pixelDepth)
+					return 0;
+
+				return mainCol.a;
 			}
 
 			int _OutlineRadius;
@@ -104,7 +109,7 @@
 					{
 						if (x*x + y*y <= radius*radius)
 						{
-							if (GetAlpha(i, float2(x, y)) > 0)
+							if( GetAlpha(i, float2(x, y)))
 							{
 								col.a = 1;
 								break;
